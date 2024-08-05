@@ -1,0 +1,9 @@
+version: '3'
+services:
+  ssr:
+    container_name: ServerSideBrowser
+    build: .
+    ports:
+      - "9300:9300"
+    environment:
+      - NODE_ENV=production
