@@ -93,7 +93,6 @@ curl --location 'example.com' \
 --header 'User-Agent: Mozilla/5.0 (compatible; googlebot/2.0; +https://developers.google.com/search)'
 ```
 
-# Support to this project
-Please donate to me\
-[Donate Link](https://gogetfunding.com/open-source-project-and-library/)\
-THANK for your support
+## Supporting me
+  [Donate Link](https://gogetfunding.com/open-source-project-and-library/)\
+  Thank you for your support!
