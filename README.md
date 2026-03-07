@@ -3,25 +3,33 @@ Node.js SSR Tool
 
 Server-Side Rendering (SSR) generates HTML content on the server and sends it to the client’s browser, unlike Client-Side Rendering (CSR), which generates content with JavaScript in the browser. SSR improves SEO by speeding up page load times, making it easier for search engines to crawl and index content, enhancing social media sharing with accurate previews, and improving accessibility for assistive technologies. This leads to better search engine rankings and a more user-friendly experience.
 
-## Node.js
+## How it work?
+The following diagram shows how the SSR tool handles requests from different users (Normal Users vs. Crawlers):
 
-### Requirements
-* **Node.js**: Version 18 or later.
-* **Browser**: Chrome/Chromium must be installed on the server (required for Puppeteer/Playwright rendering).
- 
-### Project Setup
-```sh
-npm install
+```mermaid
+graph TD
+    User((User/Crawler)) --> Nginx{Nginx}
+    Nginx -- Is Crawler? --> SSR[ServerSideBrowser Node.js]
+    Nginx -- Not Crawler --> Frontend[Static Files / CSR]
+    SSR -- Fetch & Render --> Website((Your Website))
+    Website -- Return HTML --> SSR
+    SSR -- Full Rendered HTML --> User
+    Frontend -- JS/App Shell --> User
 ```
 
-### Run it
+## Requirements
+* **Node.js**: Version 18 or later.
+* **Browser**: Chrome/Chromium must be installed on the server (required for Puppeteer/Playwright rendering).
+
+## Quick Start
+
+Node.js
 ```sh
+npm install
 node index.js
 ```
 
-## Docker
-
-### Run it
+Docker
 ```sh
 docker-compose up -d
 ```
@@ -41,18 +49,6 @@ docker-compose up -d
 curl -X GET \
   http://localhost:9300/render \
   -H 'x-url: https://www.example.com/path?p=param'
-```
-## How it work?
-The following diagram shows how the SSR tool handles requests from different users (Normal Users vs. Crawlers):
-```mermaid
-graph TD
-    User((User/Crawler)) --> Nginx{Nginx}
-    Nginx -- Is Crawler? --> SSR[ServerSideBrowser Node.js]
-    Nginx -- Not Crawler --> Frontend[Static Files / CSR]
-    SSR -- Fetch & Render --> Website((Your Website))
-    Website -- Return HTML --> SSR
-    SSR -- Full Rendered HTML --> User
-    Frontend -- JS/App Shell --> User
 ```
 
 ## Use on web server
@@ -125,6 +121,10 @@ location /proxy_to_ssr {
 ```sh
 curl -v -H "User-Agent: Googlebot" "https://example.com/path?p=param"
 ```
+
+## License
+This project is licensed under the [GNU General Public License v3.0](LICENSE). 
+Feel free to use, modify, and distribute it, provided that the same freedoms are preserved.
 
 ## Supporting me
   [Donate Link](https://gogetfunding.com/open-source-project-and-library/)\
