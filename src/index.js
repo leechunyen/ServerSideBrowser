@@ -71,9 +71,11 @@ app.all(CONFIG.RENDER_PATH, async (req, res) => {
     return res.status(400).send('Missing url');
   }
 
-  // 使用正規表示式驗證 URL 格式
-  const urlRegex = /^((https?|ftp):\/\/)?([a-zA-Z0-9\-\.]+)(:[0-9]+)?(\/[^\s]*)?$/;
-  if (!urlRegex.test(url)) {
+  try {
+    // 使用 new URL() 建構子來驗證 URL，更為可靠
+    new URL(url);
+  } catch (e) {
+    // 如果 URL 格式不正確，建構子會拋出錯誤
     return res.status(400).send('Invalid URL format');
   }
 
@@ -112,7 +114,7 @@ app.all(CONFIG.RENDER_PATH, async (req, res) => {
           // 直接從快取回應請求，中斷網路請求
           request.respond({
             status: 200,
-            contentType: resourceType === 'stylesheet' ? 'text/css' : 'application/javascript',
+            contentType: cachedResource.contentType, // 使用快取的 Content-Type
             body: cachedResource.data
           });
           return;
@@ -130,9 +132,13 @@ app.all(CONFIG.RENDER_PATH, async (req, res) => {
       // 如果資源是樣式表或腳本
       if (resourceType === 'stylesheet' || resourceType === 'script') {
         try {
-            // 讀取回應內容並存入快取
-            const resourceContent = await response.text();
-            cache[requestUrl] = { data: resourceContent, timestamp: Date.now() };
+          const resourceContent = await response.text();
+          // 儲存內容時，同時存入 Content-Type 標頭
+          cache[requestUrl] = { 
+            data: resourceContent, 
+            timestamp: Date.now(),
+            contentType: response.headers()['content-type'] // 取得原始的 Content-Type
+          };
         } catch(e) {
             console.error(`Failed to cache response for: ${requestUrl}, Error: ${e.message}`);
         }
