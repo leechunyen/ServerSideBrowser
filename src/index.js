@@ -3,19 +3,22 @@ const express = require('express');
 // 引入 Puppeteer 函式庫，用於控制無頭 Chrome 瀏覽器
 const puppeteer = require('puppeteer');
 
+// --- 設定區 ---
+const CONFIG = {
+  PORT: 9300, // 服務運行的端口
+  RENDER_PATH: '/render', // 提供渲染服務的路徑
+  USER_AGENT: 'server-side-browser', // 爬取時使用的 User-Agent
+  CACHE_TTL: 30 * 60 * 1000 // 快取存活時間（30分鐘）
+};
+// --- 設定區結束 ---
+
 // 建立 Express 應用程式實例
 const app = express();
-// 定義服務運行的端口
-const port = 9300;
-
 // 使用 Express 的中介軟體，以解析傳入的 JSON 格式請求體
 app.use(express.json());
 
 // 建立一個簡單的記憶體快取物件，用於儲存 CSS 和 JS 檔案
 const cache = {};
-// 設定快取的存活時間（Time-To-Live），單位為毫秒（此處為 30 分鐘）
-const CACHE_TTL = 30 * 60 * 1000;
-
 // 宣告一個變數，用於儲存共享的 Puppeteer 瀏覽器實例
 let browser;
 
@@ -26,7 +29,7 @@ function cleanUpCache() {
   const now = Date.now();
   for (const key in cache) {
     // 檢查屬性是否為物件自身擁有，且快取是否已過期
-    if (cache.hasOwnProperty(key) && (now - cache[key].timestamp >= CACHE_TTL)) {
+    if (cache.hasOwnProperty(key) && (now - cache[key].timestamp >= CONFIG.CACHE_TTL)) {
       console.log(`Removing expired cache for: ${key}`);
       delete cache[key];
     }
@@ -49,9 +52,9 @@ async function initializeBrowser() {
 }
 
 /**
- * 處理所有指向 /render 路徑的請求
+ * 處理所有指向渲染路徑的請求
  */
-app.all('/render', async (req, res) => {
+app.all(CONFIG.RENDER_PATH, async (req, res) => {
   // 從請求標頭中獲取目標網址 'x-url'
   const url = req.headers['x-url'];
 
@@ -72,7 +75,7 @@ app.all('/render', async (req, res) => {
     page = await browser.newPage();
 
     // 設定自訂的 User-Agent，以便於日誌分析與識別
-    await page.setUserAgent('server-side-browser');
+    await page.setUserAgent(CONFIG.USER_AGENT);
 
     // 啟用請求攔截功能
     await page.setRequestInterception(true);
@@ -92,7 +95,7 @@ app.all('/render', async (req, res) => {
       if (resourceType === 'stylesheet' || resourceType === 'script') {
         const cachedResource = cache[requestUrl];
         // 如果資源存在於快取中且尚未過期
-        if (cachedResource && (Date.now() - cachedResource.timestamp < CACHE_TTL)) {
+        if (cachedResource && (Date.now() - cachedResource.timestamp < CONFIG.CACHE_TTL)) {
           console.log(`Serving from cache: ${requestUrl}`);
           // 直接從快取回應請求，中斷網路請求
           request.respond({
@@ -150,8 +153,8 @@ async function startServer() {
   // 必須先初始化瀏覽器
   await initializeBrowser();
   // 啟動 Express 伺服器並監聽指定端口
-  const server = app.listen(port, () => {
-    console.log(`Server-side rendering service is running on http://localhost:${port}`);
+  const server = app.listen(CONFIG.PORT, () => {
+    console.log(`Server-side rendering service is running on http://localhost:${CONFIG.PORT}`);
     // 設定一個定時器，每 5 分鐘執行一次快取清理任務
     setInterval(cleanUpCache, 5 * 60 * 1000);
   });
