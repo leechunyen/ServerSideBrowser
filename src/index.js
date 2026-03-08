@@ -1,13 +1,8 @@
-// 引入 Express 框架，用於建立網頁伺服器
-const express = require('express');
-// 引入 Puppeteer 函式庫，用於控制無頭 Chrome 瀏覽器
-const puppeteer = require('puppeteer');
-
 // --- 設定區 ---
 const CONFIG = {
   PORT: 9300, // 服務運行的端口
   RENDER_PATH: '/render', // 提供渲染服務的路徑
-  USER_AGENT: 'server-side-browser', // 爬取時使用的 User-Agent
+  USER_AGENT: 'server_side_browser', // 爬取時使用的 User-Agent
   CACHE_TTL: 30 * 60 * 1000, // 快取存活時間（30分鐘）
   SKIP_STATIC_RESOURCES: { // 是否跳過載入靜態資源
     images: true, // 圖片
@@ -16,6 +11,11 @@ const CONFIG = {
   },
 };
 // --- 設定區結束 ---
+
+// 引入 Express 框架，用於建立網頁伺服器
+const express = require('express');
+// 引入 Puppeteer 函式庫，用於控制無頭 Chrome 瀏覽器
+const puppeteer = require('puppeteer');
 
 // 建立 Express 應用程式實例
 const app = express();
@@ -63,7 +63,7 @@ app.all(CONFIG.RENDER_PATH, async (req, res) => {
   // 從請求標頭中獲取目標網址 'x-url'
   const url = req.headers['x-url'];
 
-// Log the incoming request URL
+  // Log the incoming request URL
   console.log(`Rendering request for URL: ${url}`);
 
   // 如果沒有提供 URL，回傳 400 錯誤

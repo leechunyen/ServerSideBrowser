@@ -42,9 +42,11 @@ RUN apt-get update && apt-get install -y \
   libnss3 \
   lsb-release \
   xdg-utils \
-  wget \
+  dumb-init \
   --no-install-recommends && \
+  apt-get autoremove && \
   apt-get clean && \
+  apt-get autoclean && \
   rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -56,15 +58,14 @@ COPY package*.json ./
 # 安装项目依赖
 RUN npm install
 
-# 安装 Puppeteer 并设置 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD 环境变量
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-RUN npm install puppeteer
-
 # 复制项目文件到工作目录
 COPY . .
 
 # 暴露应用程序的端口
 EXPOSE 9300
+
+# 设置应用程序的入口点
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # 启动应用程序
 CMD ["node", "./index.js"]

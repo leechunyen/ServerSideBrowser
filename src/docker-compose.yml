@@ -7,3 +7,4 @@ services:
       - "9300:9300"
     environment:
       - NODE_ENV=production
+    restart: always

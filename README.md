@@ -1,7 +1,14 @@
 # ServerSideBrowser
-Node.js SSR Tool
+## A high-performance Node.js SSR tool designed for modern SPA SEO.
 
-Server-Side Rendering (SSR) generates HTML content on the server and sends it to the client’s browser, unlike Client-Side Rendering (CSR), which generates content with JavaScript in the browser. SSR improves SEO by speeding up page load times, making it easier for search engines to crawl and index content, enhancing social media sharing with accurate previews, and improving accessibility for assistive technologies. This leads to better search engine rankings and a more user-friendly experience.
+Server-Side Rendering (SSR) generates HTML content on the server and sends it to the client’s browser. Unlike Client-Side Rendering (CSR), SSR improves SEO by speeding up page load times, making it easier for search engines to crawl and index content, and enhancing social media sharing with accurate previews.
+
+## 🚀 Key Features
+* **Persistent Browser Instance**: Fast startup and lower CPU overhead by reusing a shared Chromium instance.
+* **Smart Resource Filtering**: Automatically skips non-essential assets (**Images, Fonts, Media**) to boost rendering speed.
+* **Memory Caching Engine**: Built-in TTL-based caching for **CSS and JS** to minimize network round-trips.
+* **Production Ready**: Pre-configured for **Docker** and Linux environments (shared memory fixes included).
+* **Graceful Shutdown**: Properly cleans up browser processes on service exit.
 
 ## How it work?
 The following diagram shows how the SSR tool handles requests from different users (Normal Users vs. Crawlers):
@@ -17,9 +24,9 @@ graph TD
     Frontend -- JS/App Shell --> User
 ```
 
-## Requirements
+## 📋 Requirements
 * **Node.js**: Version 18 or later.
-* **Browser**: Chrome/Chromium must be installed on the server (required for Puppeteer/Playwright rendering).
+* **Chromium**: Must be installed on the server. (Note: If using Docker, Chromium is pre-installed in the container.)
 
 ## Quick Start
 
@@ -34,32 +41,32 @@ Docker
 docker-compose up -d
 ```
 
-## API
+## 🔌 API Reference
 
  This service accepts both GET and POST requests.
 
-| Type   | Value  | Description                       |
-|--------|--------|-----------------------------------|
-| Port   | 9300   | Port listening                    |
-| Path   | /render | path to the service              |
-| Header | x-url  | URL of the website to be rendered |
+| Type        | Value               | Description                       | Required  |
+|-------------|---------------------|-----------------------------------|-----------|
+| Port        | 9300                | Port listening                    | -         |
+| Path        | /render             | path to the service               | -         |
+| User Agent  | server-side-browser | User-agent                        | -         |
+| Header      | x-url               | URL of the website to be rendered | ✅        | 
 
-### Run it on terminal
+### Test via Terminal
 ```sh
 curl -X GET \
   http://localhost:9300/render \
   -H 'x-url: https://www.example.com/path?p=param'
 ```
 
-## Use on web server
+## 🌐 Web Server Configuration (Nginx)
 
-### Nginx
-#### Nginx for SEO crawler
- Add this to http block in nginx.conf.
+### 1. Define Crawler Detection
+ Add this to the **http** block in nginx.conf:
 ```conf
 map $http_user_agent $is_crawler {
   default               0;
-  ~*server-side-browser 0; # Ensure the SSR tool itself is not forwarded repeatedly.
+  ~*server_side_browser 0; # Ensure the SSR tool itself is not forwarded repeatedly.
 
   # Mainstream search engines
   ~*googlebot           1;
@@ -80,7 +87,9 @@ map $http_user_agent $is_crawler {
   ~*discordbot          1;
 }
 ```
-Add this to server block in nginx vHost.\
+
+### 2. Configure Virtual Host (VHost)
+Add this to your **server** block in nginx.conf.\
 \
 Option A: Simple (Force all traffic to SSR)
 ```conf
@@ -116,16 +125,16 @@ location /proxy_to_ssr {
 }
 ```
 
-### Test SEO on terminal
- Replace the example.com to your website url.
+### 3. Verify SEO Setup
+Test if Googlebot is correctly routed to the SSR service:
 ```sh
 curl -v -H "User-Agent: Googlebot" "https://example.com/path?p=param"
 ```
 
-## License
+## ⚖️ License
 This project is licensed under the [GNU General Public License v3.0](LICENSE). 
 Feel free to use, modify, and distribute it, provided that the same freedoms are preserved.
 
-## Supporting me
+## ❤️ Supporting Me
   [Donate Link](https://gogetfunding.com/open-source-project-and-library/)\
   Thank you for your support!
