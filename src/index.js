@@ -8,7 +8,12 @@ const CONFIG = {
   PORT: 9300, // 服務運行的端口
   RENDER_PATH: '/render', // 提供渲染服務的路徑
   USER_AGENT: 'server-side-browser', // 爬取時使用的 User-Agent
-  CACHE_TTL: 30 * 60 * 1000 // 快取存活時間（30分鐘）
+  CACHE_TTL: 30 * 60 * 1000, // 快取存活時間（30分鐘）
+  SKIP_STATIC_RESOURCES: { // 是否跳過載入靜態資源
+    images: true, // 圖片
+    fonts: true,  // 字體
+    media: true,  // 影片、音訊
+  },
 };
 // --- 設定區結束 ---
 
@@ -85,8 +90,12 @@ app.all(CONFIG.RENDER_PATH, async (req, res) => {
       const resourceType = request.resourceType();
       const requestUrl = request.url();
 
-      // 為了加速渲染，阻擋載入圖片、字體和多媒體檔案
-      if (resourceType === 'image' || resourceType === 'font' || resourceType === 'media') {
+      // 根據設定，阻擋載入圖片、字體和多媒體檔案以加速渲染
+      if (
+        (CONFIG.SKIP_STATIC_RESOURCES.images && resourceType === 'image') ||
+        (CONFIG.SKIP_STATIC_RESOURCES.fonts && resourceType === 'font') ||
+        (CONFIG.SKIP_STATIC_RESOURCES.media && resourceType === 'media')
+      ) {
         request.abort();
         return;
       }
