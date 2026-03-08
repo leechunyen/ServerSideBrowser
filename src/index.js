@@ -63,6 +63,9 @@ app.all(CONFIG.RENDER_PATH, async (req, res) => {
   // 從請求標頭中獲取目標網址 'x-url'
   const url = req.headers['x-url'];
 
+// Log the incoming request URL
+  console.log(`Rendering request for URL: ${url}`);
+
   // 如果沒有提供 URL，回傳 400 錯誤
   if (!url) {
     return res.status(400).send('Missing url');
