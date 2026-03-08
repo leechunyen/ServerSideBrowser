@@ -58,26 +58,26 @@ curl -X GET \
  Add this to http block in nginx.conf.
 ```conf
 map $http_user_agent $is_crawler {
-    default               0;
-    ~*headlesschrome      0; # Ensure the SSR tool itself is not forwarded repeatedly.
+  default               0;
+  ~*server-side-browser 0; # Ensure the SSR tool itself is not forwarded repeatedly.
 
-    # Mainstream search engines
-    ~*googlebot           1;
-    ~*adsbot-google       1; # Google ad crawler
-    ~*applebot            1; # Apple device search (Siri/Safari)
-    ~*bingbot             1;
-    ~*duckduckbot         1;
-    ~*baidu               1;
-    ~*yandex              1;
-    ~*yahoo               1;
+  # Mainstream search engines
+  ~*googlebot           1;
+  ~*adsbot-google       1; # Google ad crawler
+  ~*applebot            1; # Apple device search (Siri/Safari)
+  ~*bingbot             1;
+  ~*duckduckbot         1;
+  ~*baidu               1;
+  ~*yandex              1;
+  ~*yahoo               1;
 
-    # Community platforms and tools
-    ~*facebookexternalhit 1;
-    ~*twitterbot          1;
-    ~*slackbot            1;
-    ~*whatsapp            1; # To display the correct preview card on WhatsApp
-    ~*linkedinbot         1;
-    ~*discordbot          1;
+  # Community platforms and tools
+  ~*facebookexternalhit 1;
+  ~*twitterbot          1;
+  ~*slackbot            1;
+  ~*whatsapp            1; # To display the correct preview card on WhatsApp
+  ~*linkedinbot         1;
+  ~*discordbot          1;
 }
 ```
 Add this to server block in nginx vHost.\
