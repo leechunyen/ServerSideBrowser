@@ -1,4 +1,5 @@
-version: '3'
+name: server-side-browser
+
 services:
   ssr:
     container_name: ServerSideBrowser
@@ -6,5 +7,14 @@ services:
     ports:
       - "9300:9300"
     environment:
+      # 應用程式環境變數
       - NODE_ENV=production
+      # 告訴 Puppeteer 在執行時使用系統的 Chromium
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      # 確保啟動時不會意外觸發下載
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+    
+    # [穩定性修正] 配置 1GB 的共享記憶體，防止 Chromium 渲染複雜網頁時出現 OOM (Out Of Memory) Crash
+    shm_size: 1g
+    
     restart: always

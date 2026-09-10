@@ -1,71 +1,41 @@
-# 使用 Node.js 官方镜像作为基础镜像
-FROM node:18
+# 1. 選擇適合的 Base Image (使用輕量級的 slim 版本)
+FROM node:20-slim
 
-# 安装必要的系统依赖项，包括 Puppeteer 所需的依赖项
+# 2. 安裝 Chromium、必要字型及 dumb-init
+# 透過安裝 'chromium' 套件，apt 會自動幫我們補齊底層需要的 libnss3, libgbm 等依賴庫
+# 同時安裝多國語言字型避免網頁渲染時出現亂碼方塊 (豆腐字)
 RUN apt-get update && apt-get install -y \
-  gconf-service \
-  libasound2 \
-  libatk1.0-0 \
-  libc6 \
-  libcairo2 \
-  libcups2 \
-  libdbus-1-3 \
-  libexpat1 \
-  libfontconfig1 \
-  libgcc1 \
-  libgconf-2-4 \
-  libgdk-pixbuf2.0-0 \
-  libglib2.0-0 \
-  libgtk-3-0 \
-  libnspr4 \
-  libpango-1.0-0 \
-  libpangocairo-1.0-0 \
-  libstdc++6 \
-  libx11-6 \
-  libx11-xcb1 \
-  libxcb1 \
-  libxcomposite1 \
-  libxcursor1 \
-  libxdamage1 \
-  libxext6 \
-  libxfixes3 \
-  libxi6 \
-  libxrandr2 \
-  libxrender1 \
-  libxss1 \
-  libxtst6 \
-  libdrm2 \
-  libgbm1 \
-  ca-certificates \
-  fonts-liberation \
-  libappindicator1 \
-  libnss3 \
-  lsb-release \
-  xdg-utils \
-  dumb-init \
-  --no-install-recommends && \
-  apt-get autoremove && \
-  apt-get clean && \
-  apt-get autoclean && \
-  rm -rf /var/lib/apt/lists/*
+    chromium \
+    fonts-ipafont-gothic \
+    fonts-wqy-zenhei \
+    fonts-thai-tlwg \
+    fonts-kacst \
+    fonts-freefont-ttf \
+    dumb-init \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-# 设置工作目录
+# 3. 設定環境變數：跳過 Puppeteer 自帶的 Chrome 下載，改用我們剛剛安裝的系統 Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+# 4. 建立工作目錄，並將擁有者改為內建的非 root 使用者 'node'
 WORKDIR /app
+RUN chown -R node:node /app
 
-# 复制 package.json 和 package-lock.json（如果有）
-COPY package*.json ./
+# 5. [安全性修正] 切換至非 root 使用者 'node'
+USER node
 
-# 安装项目依赖
-RUN npm install
+# 6. 複製依賴檔案 (注意加上 --chown=node:node)
+COPY --chown=node:node package*.json ./
 
-# 复制项目文件到工作目录
-COPY . .
+# 7. 安裝專案依賴 (只安裝 production 依賴)
+RUN npm install --omit=dev
 
-# 暴露应用程序的端口
+# 8. 複製原始碼
+COPY --chown=node:node . .
+
 EXPOSE 9300
 
-# 设置应用程序的入口点
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-
-# 启动应用程序
-CMD ["node", "./index.js"]
+# 9. 使用 dumb-init 作為 PID 1 啟動 Node.js，防止僵屍進程 (Zombie Processes)
+CMD ["dumb-init", "--", "node", "index.js"]
