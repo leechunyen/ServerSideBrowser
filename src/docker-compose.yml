@@ -4,6 +4,7 @@ services:
   ssr:
     container_name: ServerSideBrowser
     build: .
+    network_mode: "bridge"
     ports:
       - "9300:9300"
     environment:
@@ -17,4 +18,4 @@ services:
     # [穩定性修正] 配置 1GB 的共享記憶體，防止 Chromium 渲染複雜網頁時出現 OOM (Out Of Memory) Crash
     shm_size: 1g
     
-    restart: always
+    restart: unless-stopped
